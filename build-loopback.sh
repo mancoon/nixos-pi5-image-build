@@ -23,16 +23,19 @@ echo "   → ${LOOPDEV}"
 lsblk "$LOOPDEV"
 
 echo "→ Partitioning $LOOPDEV…"
-nix shell nixpkgs#parted -- parted -s "$LOOPDEV" mklabel gpt
-nix shell nixpkgs#parted -- \
+echo "→ Partitioning $LOOPDEV…"
+# Use “nix run” so parted is in PATH:
+nix run nixpkgs#parted -- parted -s "$LOOPDEV" mklabel gpt
+nix run nixpkgs#parted -- \
   parted -s "$LOOPDEV" mkpart ESP fat32 1MiB 513MiB
-nix shell nixpkgs#parted -- \
+nix run nixpkgs#parted -- \
   parted -s "$LOOPDEV" mkpart NIXOS ext4 513MiB 100%
-nix shell nixpkgs#parted -- parted -s "$LOOPDEV" set 1 boot on
+nix run nixpkgs#parted -- parted -s "$LOOPDEV" set 1 boot on
 
 echo "→ Formatting partitions…"
-nix shell nixpkgs#dosfstools -- mkfs.fat -F32 -n BOOT "${LOOPDEV}p1"
-nix shell nixpkgs#e2fsprogs -- mkfs.ext4 -L NIXOS "${LOOPDEV}p2"
+# Again use “nix run” to bring mkfs.fat and mkfs.ext4 into PATH:
+nix run nixpkgs#dosfstools -- mkfs.fat -F32 -n BOOT "${LOOPDEV}p1"
+nix run nixpkgs#e2fsprogs -- mkfs.ext4 -L NIXOS "${LOOPDEV}p2"
 
 echo "→ Mounting partitions…"
 mkdir -p /mnt/img-root /mnt/img-root/boot
