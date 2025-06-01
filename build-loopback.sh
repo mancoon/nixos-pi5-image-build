@@ -29,12 +29,10 @@ lsblk "$LOOPDEV"
 
 echo "→ Partitioning $LOOPDEV…"
 # ────────────────
-# NOTE: call 'parted' inside a bash -c so that nix run doesn’t confuse arguments.
-nix run nixpkgs#parted -- bash -c "parted -s '$LOOPDEV' mklabel gpt"
-nix run nixpkgs#parted -- bash -c "parted -s '$LOOPDEV' mkpart ESP fat32 1MiB 513MiB"
-nix run nixpkgs#parted -- bash -c "parted -s '$LOOPDEV' mkpart NIXOS ext4 513MiB 100%"
-nix run nixpkgs#parted -- bash -c "parted -s '$LOOPDEV' set 1 boot on"
-# ────────────────
+nix shell nixpkgs#parted -c "parted -s '$LOOPDEV' mklabel gpt"
+nix shell nixpkgs#parted -c "parted -s '$LOOPDEV' mkpart ESP fat32 1MiB 513MiB"
+nix shell nixpkgs#parted -c "parted -s '$LOOPDEV' mkpart NIXOS ext4 513MiB 100%"
+nix shell nixpkgs#parted -c "parted -s '$LOOPDEV' set 1 boot on"
 
 echo "→ Formatting partitions…"
 nix run nixpkgs#dosfstools -- mkfs.fat -F32 -n BOOT "${LOOPDEV}p1"
